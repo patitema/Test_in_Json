@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Прохождение теста</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/test.css') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}" />
+  </head>
+  <body>
+    <div class="test-container">
+      <div class="test-header">
+        <span class="progress-bar"
+          >Вопрос {{ current_q_num }} из {{ total_questions }}</span
+        >
+        <div class="question-meta">
+          <div id="timer"></div>
+          <div>Сложность: <strong>{{ question.difficulty }}</strong></div>
+        </div>
+      </div>
+
+      <form
+        method="POST"
+        id="question-form"
+        action="{{ url_for('test_answer') }}">
+        <input type="hidden" name="timeout" id="timeout-flag" value="false" />
+        <p class="question-text">{{ question.text }}</p>
+
+        <ul class="options-list">
+          {% for option in question.options %}
+          <li class="option-item">
+            <label>
+              <input type="radio" name="option" value="{{ option.id }}" />
+              {{ option.text }}
+            </label>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <button
+          type="submit"
+          id="next-btn"
+          class="submit-btn next-btn"
+          disabled>
+          Следующий вопрос
+        </button>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const nextButton = document.getElementById('next-btn');
+        const radioButtons = document.querySelectorAll('input[type="radio"][name="option"]');
+        const timerDisplay = document.getElementById('timer');
+        const form = document.getElementById('question-form');
+        const timeoutFlag = document.getElementById('timeout-flag');
+
+        let timeRemaining = {{ question.time_limit_sec }};
+        let timerInterval;
+
+        function startTimer() {
+          timerDisplay.textContent = `Время: ${timeRemaining} сек.`;
+          timerInterval = setInterval(() => {
+            timeRemaining--;
+            timerDisplay.textContent = `Время: ${timeRemaining} сек.`;
+            if (timeRemaining <= 0) {
+              clearInterval(timerInterval);
+              timeoutFlag.value = "true";
+              nextButton.disabled = true;
+              form.submit();
+            }
+          }, 1000);
+        }
+
+        startTimer();
+
+        function checkSelection() {
+          let isSelected = Array.from(radioButtons).some(radio => radio.checked);
+          nextButton.disabled = !isSelected;
+        }
+
+        radioButtons.forEach(radio => {
+          radio.addEventListener('change', checkSelection);
+        });
+
+        form.addEventListener('submit', () => {
+          clearInterval(timerInterval);
+        });
+      });
+    </script>
+  </body>
+</html>

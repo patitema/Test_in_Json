@@ -1,0 +1,21 @@
+{
+  "title": "Тест по Python: Основы",
+  "description": "Базовые вопросы по синтаксису и типам данных.",
+  "difficulty": "Средний",
+  "questions": [
+    {
+      "text": "Какое ключевое слово используется для определения функции в Python?",
+      "difficulty": "Легкий",
+      "time_limit_sec": 60,
+      "options": ["class", "func", "def", "method"],
+      "correct_option_index": 2
+    },
+    {
+      "text": "Какой тип данных является неизменяемым (immutable)?",
+      "difficulty": "Сложный",
+      "time_limit_sec": 90,
+      "options": ["list", "set", "dictionary", "tuple"],
+      "correct_option_index": 3
+    }
+  ]
+}

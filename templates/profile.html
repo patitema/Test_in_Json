@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Профиль Пользователя</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Тесты</a></li>
+          {% if user %}
+          <li>
+            <a href="{{ url_for('profile') }}">Профиль ({{ user.username }})</a>
+          </li>
+          <li>
+            <a href="{{ url_for('logout') }}" class="logout-link">Выйти</a>
+          </li>
+          {% else %}
+          <li><a href="{{ url_for('login') }}">Войти</a></li>
+          <li><a href="{{ url_for('register') }}">Регистрация</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <div class="main-container">
+        <h1>Профиль Пользователя</h1>
+
+        <div class="user-info">
+          <h2>Привет, {{ user.username }}!</h2>
+          <p>
+            Ваш статус: {{ 'Администратор' if user.is_admin else 'Пользователь'
+            }}
+          </p>
+        </div>
+
+        <hr />
+
+        <h2>Ваши Результаты</h2>
+
+        {% if results %}
+        <ul class="results-list">
+          {% for result in results %}
+          <li class="result-item">
+            <span class="test-title">Тест "{{ result.test.title }}"</span>
+
+            {% set total_questions = result.test.questions | length %} {% set
+            percentage = (result.score / total_questions * 100) | round(0) if
+            total_questions > 0 else 0 %}
+
+            <span class="score">
+              Результат: {{ result.score }} из {{ total_questions }}
+
+              <span style="font-weight: bold; color: #007bff"
+                >({{ percentage }}%)</span
+              >
+            </span>
+
+            <span class="date"
+              >Дата прохождения: {{ result.date_completed.strftime('%Y-%m-%d')
+              }}</span
+            >
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p>Вы пока не прошли ни одного теста.</p>
+        {% endif %}
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 Сайт Тестов</p>
+    </footer>
+  </body>
+</html>

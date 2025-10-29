@@ -1,0 +1,69 @@
+.form-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.question-group {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin-top: 25px;
+  border-radius: 6px;
+  position: relative;
+}
+.question-group h3 {
+  margin-bottom: 15px;
+  color: #555;
+  display: inline-block;
+}
+.options-container {
+  margin-top: 15px;
+}
+.option-group {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+.option-group input[type="text"] {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+.option-group input[type="radio"] {
+  min-width: 20px;
+  height: 20px;
+}
+.remove-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+.question-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.add-btn,
+.remove-q-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.remove-q-btn {
+  background-color: #6c757d;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+.add-option-btn {
+  background-color: #28a745;
+}

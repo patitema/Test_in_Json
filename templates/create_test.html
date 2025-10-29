@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Создание нового теста</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/test.css') }}" />
+  </head>
+  <body>
+    <div class="form-container">
+      <h1>Создание Нового Теста</h1>
+
+      <form
+        method="POST"
+        id="create-test-form"
+        action="{{ url_for('create_test') }}">
+        <div
+          class="form-group"
+          style="
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px dashed #007bff;
+            border-radius: 6px;
+          ">
+          <label for="json_file" style="font-weight: bold"
+            >Импорт данных из JSON:</label
+          >
+          <input
+            type="file"
+            id="json_file"
+            name="file"
+            accept=".json"
+            class="form-control"
+            onchange="handleFileUpload(event)" />
+        </div>
+        <div class="form-group">
+          <label for="title">Название Теста:</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            class="form-control"
+            required />
+        </div>
+        <div class="form-group">
+          <label for="description">Описание Теста:</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="difficulty">Сложность Теста:</label>
+          <select id="difficulty" name="test_difficulty" class="form-control">
+            <option value="Легкий">Легкий</option>
+            <option value="Средний" selected>Средний</option>
+            <option value="Сложный">Сложный</option>
+          </select>
+        </div>
+
+        <hr />
+
+        <h2>Вопросы (минимум 2)</h2>
+
+        <div id="questions-container">
+          <div class="question-group" data-question-id="1" id="q_template">
+            <h3>Вопрос #<span class="q-number">1</span></h3>
+
+            <button type="button" class="remove-q-btn" style="display: none">
+              Удалить вопрос
+            </button>
+
+            <div class="form-group">
+              <label for="q_text_1">Текст вопроса:</label>
+              <input
+                type="text"
+                id="q_text_1"
+                name="q_text_1"
+                class="form-control q-text-input"
+                required />
+            </div>
+
+            <div style="display: flex; gap: 10px">
+              <div class="form-group" style="flex: 1">
+                <label>Сложность вопроса:</label>
+                <select
+                  name="q_1_difficulty"
+                  class="form-control difficulty-select q-difficulty-select">
+                  <option value="Легкий">Легкий</option>
+                  <option value="Средний" selected>Средний</option>
+                  <option value="Сложный">Сложный</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1">
+                <label>Время на вопрос (сек):</label>
+                <input
+                  type="number"
+                  name="q_1_time_limit"
+                  value="60"
+                  class="form-control time-limit-input q-time-limit-input" />
+              </div>
+            </div>
+            <p>Варианты ответов:</p>
+            <div class="options-container q-options-container">
+              <div
+                class="option-group form-group"
+                data-option-id="1"
+                id="o_template">
+                <input
+                  type="text"
+                  name="q_1_option_text_1"
+                  placeholder="Вариант 1"
+                  class="form-control option-text-input"
+                  required />
+                <label>
+                  <input type="radio" name="q_1_correct" value="1" required />
+                  Правильный
+                </label>
+                <button
+                  type="button"
+                  class="remove-btn remove-option-btn"
+                  style="display: none">
+                  Удалить
+                </button>
+              </div>
+            </div>
+
+            <div class="question-actions">
+              <button type="button" class="add-btn add-option-btn">
+                Добавить ответ
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="add-question-btn"
+          class="submit-btn admin-btn"
+          style="width: auto">
+          + Добавить Вопрос
+        </button>
+        <button type="submit" class="submit-btn">Создать Тест</button>
+      </form>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const questionsContainer = document.getElementById(
+          "questions-container"
+        );
+        const addQuestionBtn = document.getElementById("add-question-btn");
+        const qTemplate = document.getElementById("q_template");
+        const oTemplate = document.getElementById("o_template");
+
+        qTemplate.remove();
+        oTemplate.remove();
+
+        let questionCounter = 0;
+        const urlParams = new URLSearchParams(window.location.search);
+        const isImportAction = urlParams.get("action") === "import";
+
+        function initializeForm() {
+          if (questionsContainer.children.length === 0) {
+            for (let i = 1; i <= 2; i++) {
+              addQuestion(i);
+            }
+          }
+        }
+
+        function addQuestion(newQId, qData = null) {
+          const newQuestion = qTemplate.cloneNode(true);
+          newQuestion.id = "";
+          newQuestion.style.display = "block";
+          newQuestion.querySelector(".remove-q-btn").style.display =
+            newQId > 2 ? "block" : "none";
+
+          questionCounter = newQId;
+
+          reindexQuestion(newQuestion, newQId);
+
+          if (qData) {
+            newQuestion.querySelector(".q-text-input").value = qData.text || "";
+            newQuestion.querySelector(".q-difficulty-select").value =
+              qData.difficulty || "Средний";
+            newQuestion.querySelector(".q-time-limit-input").value =
+              qData.time_limit_sec || 60;
+
+            const optionsContainer = newQuestion.querySelector(
+              ".q-options-container"
+            );
+            optionsContainer.innerHTML = "";
+
+            if (qData.options && qData.options.length > 0) {
+              qData.options.forEach((oText, idx) => {
+                const isCorrect = idx === qData.correct_option_index;
+                addOption(newQuestion, idx + 1, oText, isCorrect);
+              });
+            }
+          } else {
+            for (let j = 1; j <= 3; j++) {
+              addOption(newQuestion, j);
+            }
+          }
+
+          questionsContainer.appendChild(newQuestion);
+        }
+
+        function addOption(
+          questionGroup,
+          newOId,
+          oText = "",
+          isCorrect = false
+        ) {
+          const optionsContainer = questionGroup.querySelector(
+            ".q-options-container"
+          );
+          const newOption = oTemplate.cloneNode(true);
+          newOption.id = "";
+
+          const qId = questionGroup.getAttribute("data-question-id");
+
+          newOption.setAttribute("data-option-id", newOId);
+
+          const textInput = newOption.querySelector('input[type="text"]');
+          textInput.name = `q_${qId}_option_text_${newOId}`;
+          textInput.placeholder = `Вариант ${newOId}`;
+          textInput.value = oText;
+
+          const radioInput = newOption.querySelector('input[type="radio"]');
+          radioInput.name = `q_${qId}_correct`;
+          radioInput.value = newOId;
+
+          // ИСПРАВЛЕНИЕ: Выбираем первый ответ по умолчанию ИЛИ если это импорт правильного ответа
+          if ((newOId === 1 && !isCorrect) || isCorrect) {
+            radioInput.checked = true;
+          } else {
+            radioInput.checked = false;
+          }
+
+          const removeBtn = newOption.querySelector(".remove-option-btn");
+          removeBtn.style.display = newOId > 2 ? "block" : "none";
+
+          optionsContainer.appendChild(newOption);
+        }
+
+        window.handleFileUpload = (event) => {
+          const file = event.target.files[0];
+          if (!file) {
+            if (questionsContainer.children.length === 0) {
+              initializeForm();
+            }
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const json_data = JSON.parse(e.target.result);
+
+              document.getElementById("title").value = json_data.title || "";
+              document.getElementById("description").value =
+                json_data.description || "";
+              document.getElementById("difficulty").value =
+                json_data.difficulty || "Средний";
+
+              questionsContainer.innerHTML = "";
+              questionCounter = 0;
+
+              const questions = json_data.questions || [];
+              questions.forEach((qData, index) => {
+                addQuestion(index + 1, qData);
+              });
+
+              if (questions.length < 2) {
+                initializeForm();
+              }
+
+              alert(
+                `Тест "${json_data.title}" загружен. Проверьте данные и нажмите 'Создать Тест'.`
+              );
+            } catch (error) {
+              alert("Ошибка при парсинге JSON-файла: " + error.message);
+              console.error(error);
+              initializeForm();
+            }
+          };
+          reader.readAsText(file);
+        };
+
+        const reindexQuestion = (newQuestion, newQId) => {
+          const oldQId = newQuestion.getAttribute("data-question-id");
+
+          newQuestion.setAttribute("data-question-id", newQId);
+          newQuestion.querySelector(".q-number").textContent = newQId;
+
+          newQuestion
+            .querySelectorAll('[name*="q_"], [id*="q_"], [for*="q_"]')
+            .forEach((el) => {
+              // 1. Обработка ID и htmlFor для q_text_X
+              if (el.id && el.id.startsWith("q_text_"))
+                el.id = el.id.replace(`q_text_${oldQId}`, `q_text_${newQId}`);
+              if (el.htmlFor && el.htmlFor.startsWith("q_text_"))
+                el.htmlFor = el.htmlFor.replace(
+                  `q_text_${oldQId}`,
+                  `q_text_${newQId}`
+                ); // 2. Обработка NAME
+
+              if (el.name) {
+                if (el.name.startsWith(`q_text_${oldQId}`)) {
+                  // ИСПРАВЛЕНИЕ ДЛЯ ТЕКСТА ВОПРОСА
+                  el.name = el.name.replace(
+                    `q_text_${oldQId}`,
+                    `q_text_${newQId}`
+                  );
+                } else {
+                  // Обработка остальных полей (q_1_difficulty, q_1_correct и т.д.)
+                  el.name = el.name.replace(`q_${oldQId}_`, `q_${newQId}_`);
+                }
+              }
+            }); // ... Оставшаяся часть функции остается без изменений ...
+
+          newQuestion
+            .querySelectorAll("input, select, textarea")
+            .forEach((el) => {
+              const name = el.name || "";
+
+              if (el.tagName === "SELECT" && name.endsWith("_difficulty")) {
+                el.value = newQuestion.querySelector(
+                  ".q-difficulty-select"
+                ).value;
+              } else if (
+                el.tagName === "INPUT" &&
+                name.endsWith("_time_limit")
+              ) {
+                el.value = newQuestion.querySelector(
+                  ".q-time-limit-input"
+                ).value;
+              } else if (
+                el.tagName === "INPUT" &&
+                (el.type === "text" || el.type === "number")
+              ) {
+                el.value = "";
+              } else if (el.tagName === "INPUT" && el.type === "radio") {
+                el.checked = false;
+              } else if (el.tagName === "TEXTAREA") {
+                el.value = "";
+              }
+            });
+
+          const removeQBtn = newQuestion.querySelector(".remove-q-btn");
+          if (removeQBtn) {
+            removeQBtn.style.display = newQId > 2 ? "block" : "none";
+          }
+
+          const optionsContainer = newQuestion.querySelector(
+            ".q-options-container"
+          );
+          optionsContainer
+            .querySelectorAll(".option-group")
+            .forEach((optionGroup, index) => {
+              const newOId = index + 1;
+              optionGroup.setAttribute("data-option-id", newOId);
+
+              const textInput = optionGroup.querySelector('input[type="text"]');
+              textInput.name = `q_${newQId}_option_text_${newOId}`;
+              textInput.placeholder = `Вариант ${newOId}`;
+
+              const radioInput = optionGroup.querySelector(
+                'input[type="radio"]'
+              );
+              radioInput.name = `q_${newQId}_correct`;
+              radioInput.value = newOId;
+            });
+        };
+
+        addQuestionBtn.addEventListener("click", () => {
+          questionCounter++;
+          addQuestion(questionCounter);
+        });
+
+        questionsContainer.addEventListener("click", (event) => {
+          const btn = event.target;
+          const questionGroup = btn.closest(".question-group");
+          const optionsContainer = questionGroup
+            ? questionGroup.querySelector(".q-options-container")
+            : null;
+
+          if (btn.classList.contains("add-option-btn")) {
+            const lastOption = optionsContainer.lastElementChild;
+            const newOptionId =
+              parseInt(lastOption.getAttribute("data-option-id")) + 1;
+            addOption(questionGroup, newOptionId);
+          }
+
+          if (btn.classList.contains("remove-option-btn")) {
+            if (optionsContainer.children.length > 2) {
+              // ИСПРАВЛЕНИЕ: Сохраняем, был ли удаляемый вариант правильным
+              const wasChecked = btn
+                .closest(".option-group")
+                .querySelector('input[type="radio"]').checked;
+
+              btn.closest(".option-group").remove();
+
+              optionsContainer
+                .querySelectorAll(".option-group")
+                .forEach((optionGroup, index) => {
+                  const newOId = index + 1;
+                  optionGroup.setAttribute("data-option-id", newOId);
+                  const qId = questionGroup.getAttribute("data-question-id");
+
+                  optionGroup.querySelector(
+                    'input[type="text"]'
+                  ).name = `q_${qId}_option_text_${newOId}`;
+                  optionGroup.querySelector(
+                    'input[type="text"]'
+                  ).placeholder = `Вариант ${newOId}`;
+
+                  const radioInput = optionGroup.querySelector(
+                    'input[type="radio"]'
+                  );
+                  radioInput.value = newOId;
+
+                  // ИСПРАВЛЕНИЕ: Если был удален выбранный ответ, автоматически выбираем первый
+                  if (wasChecked && newOId === 1) {
+                    radioInput.checked = true;
+                  }
+
+                  const removeBtn =
+                    optionGroup.querySelector(".remove-option-btn");
+                  if (removeBtn)
+                    removeBtn.style.display = newOId > 2 ? "block" : "none";
+                });
+
+              // ИСПРАВЛЕНИЕ: Проверяем, остался ли хоть один выбранный ответ
+              const anyChecked = optionsContainer.querySelector(
+                'input[type="radio"]:checked'
+              );
+              if (!anyChecked) {
+                // Если после переиндексации все равно нет выбранного, выбираем первый
+                optionsContainer.querySelector(
+                  'input[type="radio"]'
+                ).checked = true;
+              }
+            } else {
+              alert("Вопрос должен содержать минимум 2 варианта ответа.");
+            }
+          }
+
+          if (btn.classList.contains("remove-q-btn")) {
+            if (questionsContainer.children.length > 2) {
+              btn.closest(".question-group").remove();
+              questionsContainer
+                .querySelectorAll(".question-group")
+                .forEach((qGroup, index) => {
+                  reindexQuestion(qGroup, index + 1);
+                });
+              questionCounter = questionsContainer.children.length;
+            } else {
+              alert("Тест должен содержать минимум 2 вопроса.");
+            }
+          }
+        });
+
+        questionsContainer.addEventListener("change", (event) => {
+          if (event.target.classList.contains("difficulty-select")) {
+            const selectedDifficulty = event.target.value;
+            const questionGroup = event.target.closest(".question-group");
+            const timeInput = questionGroup.querySelector(
+              ".q-time-limit-input"
+            );
+            const timeMap = { Легкий: 90, Средний: 60, Сложный: 30 };
+            if (timeMap[selectedDifficulty]) {
+              timeInput.value = timeMap[selectedDifficulty];
+            }
+          }
+        });
+
+        // АВТОМАТИЧЕСКОЕ ОТКРЫТИЕ ДИАЛОГА ВЫБОРА ФАЙЛА
+        if (isImportAction) {
+          const fileInput = document.getElementById("json_file");
+          if (fileInput) {
+            fileInput.focus();
+          }
+        }
+
+        // Инициализация формы, если не режим импорта ИЛИ после импорта/отмены
+        if (!isImportAction || questionsContainer.children.length === 0) {
+          initializeForm();
+        }
+      });
+    </script>
+  </body>
+</html>

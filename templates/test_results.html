@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Статистика по тесту: {{ test.title }}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}" />
+  </head>
+  <body>
+    <div class="results-container">
+      <h1>Результаты теста: {{ test.title }}</h1>
+      <h2>Всего вопросов: {{ total_questions }}</h2>
+
+      {% if results %}
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Пользователь</th>
+            <th>Счет (Прав./Всего)</th>
+            <th>Процент</th>
+            <th>Дата прохождения</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr>
+            <td>{{ result.user.username }}</td>
+
+            <td>{{ result.score }} / {{ total_questions }}</td>
+
+            {% set percentage = (result.score / total_questions * 100) |
+            round(0) if total_questions > 0 else 0 %}
+            <td class="{{ 'pass' if percentage >= 60 else 'fail' }}">
+              {{ percentage }}%
+            </td>
+
+            <td>{{ result.date_completed.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p style="text-align: center; margin-top: 30px">
+        Пока никто не прошел этот тест.
+      </p>
+      {% endif %}
+
+      <div style="text-align: center; margin-top: 30px">
+        <a
+          href="{{ url_for('index') }}"
+          class="start-test-btn"
+          style="width: auto; padding: 10px 20px"
+          >Вернуться на главную</a
+        >
+      </div>
+    </div>
+  </body>
+</html>
