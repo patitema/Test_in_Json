@@ -16,9 +16,7 @@ class Test(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     
-    # --- ДОБАВЛЕНИЕ ПОЛЯ СЛОЖНОСТИ ДЛЯ ТЕСТА ---
     difficulty = db.Column(db.String(50), default='Средний')
-    # -------------------------------------------
     
     questions = db.relationship('Question', backref='test', lazy=True)
 
@@ -29,10 +27,8 @@ class Question(db.Model):
     text = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(50)) 
     
-    # --- ДОБАВЛЕНИЕ ПОЛЕЙ СЛОЖНОСТИ И ВРЕМЕНИ ДЛЯ ВОПРОСА ---
     difficulty = db.Column(db.String(50), default='Средний')
-    time_limit_sec = db.Column(db.Integer, default=60) # Время на вопрос в секундах
-    # --------------------------------------------------------
+    time_limit_sec = db.Column(db.Integer, default=60)
 
     options = db.relationship('Option', backref='question', lazy='joined')
 
@@ -51,5 +47,4 @@ class Result(db.Model):
     score = db.Column(db.Integer)
     date_completed = db.Column(db.DateTime, default=db.func.now())
     
-    # Связь для получения информации о тесте
     test = db.relationship('Test')
