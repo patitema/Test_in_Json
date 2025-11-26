@@ -24,8 +24,8 @@
    Скачай проект на свой компьютер, используя команду:
 
    ```bash
-   git clone <https://github.com/patitema/Test_in_Json.git>
-   cd <Test_in_json>
+   git clone https://github.com/patitema/Test_in_Json.git
+   cd Test_in_json
    ```
 
 2. **Создать виртуальное окружение:**
@@ -71,7 +71,7 @@
    Теперь, когда все зависимости установлены, можно запустить сервер Flask. Для этого в корне проекта выполните команду:
 
    ```bash
-   python manage.py run
+   python app.py run
    ```
 
    Сервер запустится по умолчанию на порту 5000, и ты сможешь открыть проект в браузере по адресу http://127.0.0.1:5000.
